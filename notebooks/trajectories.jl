@@ -51,9 +51,6 @@ md"""
 # ╔═╡ 25484c05-3fae-42f8-9504-151bafbc976f
 trajs = generate_trajectories(τθ, initialstate; m=500)
 
-# ╔═╡ a0e2fae1-e6ee-4002-b52c-08fd82f6afcd
-@bind i Slider(eachindex(trajs), show_value=true)
-
 # ╔═╡ ee36059c-15b9-41aa-8f8c-b284f7d095fc
 md"""
 ## Trajectories that violated the target
@@ -62,8 +59,8 @@ md"""
 # ╔═╡ 4c2b53af-25dd-438b-9f1f-5761d0dda8b9
 violated_trajs = find_violations(trajs, target)
 
-# ╔═╡ 00a69227-4ee3-4419-9a60-50bad6a4a6f3
-create_gif(violated_trajs, target, initialstate)
+# ╔═╡ a0e2fae1-e6ee-4002-b52c-08fd82f6afcd
+@bind i Slider(eachindex(violated_trajs), show_value=true)
 
 # ╔═╡ fe49d27d-ab4a-4c6a-8c3a-c325b7c674e7
 LocalResource("./traj.gif")
@@ -102,7 +99,7 @@ md"""
 """
 
 # ╔═╡ 5e15b7c0-0c7a-4030-ab37-37cc015bb015
-nn_params = NNParams(input_size=3)
+nn_params = NNParams(input_size=length(extract_features(τ[1], target)))
 
 # ╔═╡ d91dd5cb-57bc-4978-afab-770061158de5
 f = initialize_network(nn_params)
@@ -114,16 +111,19 @@ data = get_dataset(τθ, target, initialstate);
 @bind run_training CheckBox(false)
 
 # ╔═╡ abae61b8-3b6e-42ff-8533-34100f8e093f
-f′ = run_training ? train(f, nn_params, data; epochs=50) : missing
-
-# ╔═╡ 7b396a45-b0b6-4c25-b0b0-57231bc6e2e3
-plot_trajectories([trajs[i]], target, initialstate; f=f′)
+f′ = run_training ? train(f, nn_params, data; epochs=10) : missing
 
 # ╔═╡ 547f04e4-3590-4082-93af-cb8c2c5ccc85
 plot_trajectories(trajs, target, initialstate; f=f′)
 
 # ╔═╡ 567b5027-1c84-4eb1-93f6-ca86fd215d0c
 plot_trajectories(violated_trajs, target, initialstate; f=f′)
+
+# ╔═╡ 7b396a45-b0b6-4c25-b0b0-57231bc6e2e3
+plot_trajectories([violated_trajs[i]], target, initialstate; f=f′)
+
+# ╔═╡ 00a69227-4ee3-4419-9a60-50bad6a4a6f3
+create_gif(violated_trajs, target, initialstate; f=f′)
 
 # ╔═╡ Cell order:
 # ╟─5684532b-2c77-4571-85f4-2d27ffbafee1
@@ -135,12 +135,12 @@ plot_trajectories(violated_trajs, target, initialstate; f=f′)
 # ╟─588df368-815f-4ce0-8818-07fbba60c9b4
 # ╠═2e354f0b-99c4-4fd0-9ccb-b2a0465c6d48
 # ╠═25484c05-3fae-42f8-9504-151bafbc976f
-# ╠═a0e2fae1-e6ee-4002-b52c-08fd82f6afcd
-# ╠═7b396a45-b0b6-4c25-b0b0-57231bc6e2e3
 # ╠═547f04e4-3590-4082-93af-cb8c2c5ccc85
 # ╟─ee36059c-15b9-41aa-8f8c-b284f7d095fc
 # ╠═4c2b53af-25dd-438b-9f1f-5761d0dda8b9
 # ╠═567b5027-1c84-4eb1-93f6-ca86fd215d0c
+# ╠═a0e2fae1-e6ee-4002-b52c-08fd82f6afcd
+# ╠═7b396a45-b0b6-4c25-b0b0-57231bc6e2e3
 # ╠═00a69227-4ee3-4419-9a60-50bad6a4a6f3
 # ╠═fe49d27d-ab4a-4c6a-8c3a-c325b7c674e7
 # ╟─722f9ea9-5d2c-4dcc-a90e-825ab01bf58b

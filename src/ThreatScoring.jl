@@ -1,7 +1,7 @@
 module ThreatScoring
 
 using Reexport
-@reexport using Plots; default(fontfamily="Computer Modern", framestyle=:box)
+@reexport using Plots
 @reexport using Distributions
 @reexport using Random
 @reexport using LinearAlgebra

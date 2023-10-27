@@ -124,14 +124,6 @@ function train(f::Chain, nn_params::NNParams, data; epochs=100, verbose=true)
     return f
 end
 
-function plot_training(e, training_epochs, losses_train, losses_valid)
-    learning_curve = plot(xlims=(1, training_epochs), title="learning curve")
-    plot!(1:e, losses_train, label="training", c=1)
-    plot!(1:e, losses_valid, label="validation", c=2)
-    ylims!(0, ylims()[2])
-    return learning_curve
-end
-
 lookup(f::Chain, τ::Vector{<:Vector{<:Real}}, target::Target) = map(τₜ->lookup(f, τₜ, target), τ)
 
 function lookup(f::Chain, τₜ::Vector{<:Real}, target::Target)

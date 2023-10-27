@@ -48,7 +48,9 @@ function extract_features(τₜ::Vector{Real}, target::Target)
 	h = angle_to_target(τₜ, target.xy)
 	dv = norm(τₜ - target.xy) - target.radius
 	dt = norm(τₜ - target.xy)
-	return [h, dv, dt]
+	# return [h]
+	return [h, dv]
+	# return [h, dv, dt]
 end
 
 function extract_features(τ::Vector{<:Vector{Real}}, target::Target)
@@ -56,6 +58,7 @@ function extract_features(τ::Vector{<:Vector{Real}}, target::Target)
 	# - headings to target
 	# - distances to violation (negative if inside violation)
 	# - distances to target
+    # - rates to target
 	X = Vector{Real}[]
 	for t in eachindex(τ)
 		push!(X, extract_features(τ[t], target))
