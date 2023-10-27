@@ -6,6 +6,9 @@ using Reexport
 @reexport using Random
 @reexport using LinearAlgebra
 @reexport using Reel
+@reexport using Flux
+@reexport using Flux.NNlib
+@reexport using Flux.MLUtils
 
 export
     InitialState,
@@ -17,13 +20,20 @@ export
     headings,
     angle_to_target,
     extract_features,
+    get_dataset,
     is_violation,
     find_violations,
+    NNParams,
+    initialize_network,
+    train,
+    lookup,
+    plot_training,
     plot_trajectories,
     create_gif
 
 include("threat_scoring.jl")
 include("utils.jl")
+include("training.jl")
 include("plots.jl")
 
 

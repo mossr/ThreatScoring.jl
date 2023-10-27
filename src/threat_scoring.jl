@@ -78,6 +78,11 @@ function extract_features(trajs::Vector{<:Vector{<:Vector{<:Real}}}, target::Tar
 	return 𝐗, 𝐘
 end
 
+function get_dataset(τθ::TrajectoryParams, target::Target, initialstate::InitialState; m=500)
+    trajs = generate_trajectories(τθ, initialstate; m)
+    return extract_features(trajs, target)
+end
+
 is_violation(τₜ, target::Target) = norm(τₜ - target.xy) < target.radius
 
 function find_violations(trajs, target::Target)

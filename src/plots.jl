@@ -1,4 +1,4 @@
-function plot_trajectories(trajs::Vector, target::Target, initialstate::InitialState; t=missing)
+function plot_trajectories(trajs::Vector, target::Target, initialstate::InitialState; t=missing, f=missing)
     ranges = initialstate.ranges
     plot()
 	for τ in trajs
@@ -7,8 +7,15 @@ function plot_trajectories(trajs::Vector, target::Target, initialstate::InitialS
 		end
 		τx = first.(τ)[1:t]
 		τy = last.(τ)[1:t]
+		if ismissing(f)
+			c = :crimson
+		else
+			cmap = cgrad([:black, :red])
+			Ỹ = lookup(f, τ, target)
+			c = map(ỹ->get(cmap, ỹ), Ỹ)
+		end
 		plot!(τx, τy,
-			c=:crimson,
+			c=c,
 			mark=true,
 			ms=2,
 			msw=0,
