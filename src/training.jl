@@ -34,7 +34,8 @@ function initialize_network(nn_params::NNParams)
         DenseRegularizedLayer(ℓs => ℓs)...,
         DenseRegularizedLayer(ℓs => ℓs)...,
         Dense(ℓs => 1),
-        sigmoid
+        # sigmoid done via logitbinarycrossentropy, handled in lookup
+        # sigmoid, # if not using logitbinarycrossentropy
     )
 end
 
@@ -65,7 +66,9 @@ function train(f::Chain, nn_params::NNParams, data; epochs=100, verbose=true)
 
     loss(x, y) = begin
         local ỹ = f(x)
-        l = Flux.Losses.binarycrossentropy(ỹ, y)
+        l = Flux.Losses.logitbinarycrossentropy(ỹ, y)
+        # l = Flux.Losses.binarycrossentropy(ỹ, y)
+        # l = Flux.Losses.tversky_loss(ỹ, y; beta=0.3)
         regularization = penalty()
 
         return l + regularization
@@ -128,5 +131,13 @@ lookup(f::Chain, τ::Vector{<:Vector{<:Real}}, target::Target) = map(τₜ->look
 
 function lookup(f::Chain, τₜ::Vector{<:Real}, target::Target)
 	x = Float32.(extract_features(τₜ, target))
-	return f(x)[1] # 1-element vector
+	return sigmoid(f(x)[1]) # 1-element vector
+	# return f(x)[1] # 1-element vector, if not using logitbinarycrossentropy
+end
+
+function get_input_size(τθ::TrajectoryParams, initialstate::InitialState, target::Target)
+    trajs = generate_trajectories(τθ, initialstate; m=1)
+    τ = trajs[1]
+    τₜ = τ[1]
+    return length(extract_features(τₜ, target))
 end
