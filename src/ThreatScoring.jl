@@ -5,6 +5,7 @@ using Reexport
 @reexport using Distributions
 @reexport using Random
 @reexport using LinearAlgebra
+@reexport using Statistics
 @reexport using Reel
 @reexport using Flux
 @reexport using Flux.NNlib
@@ -29,6 +30,7 @@ export
     precision,
     recall,
     NNParams,
+    EnsembleNetwork,
     initialize_network,
     train,
     lookup,
@@ -36,6 +38,7 @@ export
     plot_training,
     plot_trajectories,
     plot_classification_metrics,
+    plot_traj_and_prediction,
     create_gif
 
 include("threat_scoring.jl")

@@ -10,14 +10,17 @@ Base.@kwdef struct NNParams
     λ = 1e-3
 end
 
-function initialize_network(nn_params::NNParams)
+mutable struct EnsembleNetwork
+    networks
+end
+
+function initialize_network(nn_params::NNParams; is_ensemble=false, n=is_ensemble ? 3 : 1)
     input_size = nn_params.input_size
     activation = nn_params.activation
     ℓs = nn_params.layer_size
 
     p_dropout = nn_params.p_dropout
     use_dropout = p_dropout > 0
-
 
     function DenseRegularizedLayer(in_out::Pair)
         input, output = in_out
@@ -28,7 +31,7 @@ function initialize_network(nn_params::NNParams)
         end
     end
 
-    return Chain(
+    create_network() = Chain(
         DenseRegularizedLayer(input_size => ℓs)...,
         DenseRegularizedLayer(ℓs => ℓs)...,
         DenseRegularizedLayer(ℓs => ℓs)...,
@@ -37,6 +40,12 @@ function initialize_network(nn_params::NNParams)
         # sigmoid done via logitbinarycrossentropy, handled in lookup
         # sigmoid, # if not using logitbinarycrossentropy
     )
+
+    if is_ensemble
+        return EnsembleNetwork([create_network() for _ in 1:n])
+    else
+        return create_network()
+    end
 end
 
 function train(f::Chain, nn_params::NNParams, data; epochs=100, verbose=true)
@@ -127,12 +136,32 @@ function train(f::Chain, nn_params::NNParams, data; epochs=100, verbose=true)
     return f
 end
 
-lookup(f::Chain, τ::Vector{<:Vector{<:Real}}, target::Target) = map(τₜ->lookup(f, τₜ, target), τ)
+function train(en::EnsembleNetwork, nn_params::NNParams, data; kwargs...)
+    for (i,f) in enumerate(en.networks)
+        en.networks[i] = train(f, nn_params, data; kwargs...)
+    end
+    return en
+end
 
-function lookup(f::Chain, τₜ::Vector{<:Real}, target::Target)
+lookup(f::Union{Chain,EnsembleNetwork}, τ::Vector{<:Vector{<:Real}}, target::Target; kwargs...) = map(τₜ->lookup(f, τₜ, target; kwargs...), τ)
+
+function lookup(f::Chain, τₜ::Vector{<:Real}, target::Target; kwargs...)
 	x = Float32.(extract_features(τₜ, target))
 	return sigmoid(f(x)[1]) # 1-element vector
 	# return f(x)[1] # 1-element vector, if not using logitbinarycrossentropy
+end
+
+function lookup(en::EnsembleNetwork, τₜ::Vector{<:Real}, target::Target; return_mean=false, return_raw=false)
+    𝐲̃ = map(f->lookup(f, τₜ, target), en.networks)
+    if return_raw
+        return 𝐲̃
+    else
+        if return_mean
+            return mean(𝐲̃)
+        else
+            return mean(𝐲̃), std(𝐲̃)
+        end
+    end
 end
 
 function get_input_size(τθ::TrajectoryParams, initialstate::InitialState, target::Target)

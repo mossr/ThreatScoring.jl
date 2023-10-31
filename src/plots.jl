@@ -14,7 +14,7 @@ function plot_trajectories(trajs::Vector, target::Target, initialstate::InitialS
 		if ismissing(f)
 			c = :crimson
 		else
-			Ỹ = lookup(f, τ, target)
+			Ỹ = lookup(f, τ, target; return_mean=isa(f, EnsembleNetwork))
 			g(ỹ) = thresh == 0 ? get(cmap, ỹ) : get(cmap, ỹ > thresh)
 			c = map(ỹ->g(ỹ), Ỹ)[1:t]
 		end
@@ -40,18 +40,6 @@ function plot_trajectories(trajs::Vector, target::Target, initialstate::InitialS
 	plot!(ratio=1)
 end
 
-function create_gif(trajs, target, initialstate; kwargs...)
-	frames = Frames(MIME("image/png"), fps=2)
-	for t in 1:length(trajs[1])
-		frame = plot_trajectories(trajs, target, initialstate; t, kwargs...)
-		push!(frames, frame)
-	end
-	# [push!(frames, frame) for _ in 1:10] # duplicate last frame
-	write("traj.gif", frames)
-    # LocalResource("./traj.gif")
-    return frames
-end
-
 function plot_training(e, training_epochs, losses_train, losses_valid)
 	default(; PLOT_DEFAULTS...)
 
@@ -71,5 +59,25 @@ function plot_classification_metrics(stats::Dict, thresholds)
 	plot(thresholds, recalls; c=:red, label="recall", args...)
 	plot!(thresholds, precisions; c=:blue, label="precision", args...)
 	plot!(thresholds, accuracies; c=:green, label="accuracies", args...)
-	plot!(size=(500,300), ylims=(0,1.05))
+	plot!(size=(500,300), ylims=(0,1.05), yticks=0:0.1:1, xticks=0:0.1:1)
+end
+
+function plot_traj_and_prediction(τ, target, initialstate; f, cmap, t)
+	plt_pred = plot_trajectories([τ], target, initialstate; f, cmap, t)
+	𝒩 = TruncatedNormal(lookup(f, τ[t], target)..., 0, 1)
+	plt_ensemble = plot(0:0.001:1, x->pdf(𝒩, x), xlabel="probability", label=false, c=:crimson, yticks=false)
+	return plot(plt_pred, plt_ensemble, size=(600,300), margin=2Plots.mm)
+end
+
+function create_gif(trajs, target, initialstate; filename="traj.gif", callback=(trajs, target, initialstate; kwargs...)->plot_trajectories(trajs, target, initialstate; kwargs...), kwargs...)
+	frames = Frames(MIME("image/png"), fps=2)
+	for t in 1:length(trajs[1])
+		frame = callback(trajs, target, initialstate; t, kwargs...)
+		# plot_trajectories(trajs, target, initialstate; t, kwargs...)
+		push!(frames, frame)
+	end
+	# [push!(frames, frame) for _ in 1:10] # duplicate last frame
+	write(filename, frames)
+    # LocalResource("./$filename")
+    return frames
 end

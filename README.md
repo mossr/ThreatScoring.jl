@@ -2,11 +2,17 @@
 
 Estimating the threat probability of trajectories.
 
-> See notebook for full details: [![threat-scoring](https://img.shields.io/badge/pluto-threat%20scoring-00505c)](https://htmlview.glitch.me/?https://github.com/mossr/ThreatScoring.jl/blob/main/img/trajectories.html)
+**See notebook for full details:**
+
+[![threat-scoring](https://img.shields.io/badge/pluto-threat%20scoring-00505c)](https://htmlview.glitch.me/?https://github.com/mossr/ThreatScoring.jl/blob/main/img/threat_scoring.html)
 
 
 <p align="center">
   <img src="./img/threat-score.png">
+</p>
+
+<p align="center">
+  <img src="./img/traj_and_pred.gif">
 </p>
 
 ## Violations

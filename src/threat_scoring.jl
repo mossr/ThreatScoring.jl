@@ -127,13 +127,13 @@ function find_violations(trajs, target::Target; negate=false)
     end
 end
 
-function is_predicted_violation(τₜ::Vector{<:Real}, target::Target, f::Chain; thresh=0.5)
-    ŷ = lookup(f, τₜ, target)
+function is_predicted_violation(τₜ::Vector{<:Real}, target::Target, f::Union{Chain,EnsembleNetwork}; thresh=0.5)
+    ŷ = lookup(f, τₜ, target; return_mean=isa(f, EnsembleNetwork))
     return ŷ > thresh
 end
 
-function is_predicted_violation(τ::Vector{<:Vector{<:Real}}, target::Target, f::Chain; thresh=0.5)
-    Ŷ = lookup(f, τ, target)
+function is_predicted_violation(τ::Vector{<:Vector{<:Real}}, target::Target, f::Union{Chain,EnsembleNetwork}; thresh=0.5)
+    Ŷ = lookup(f, τ, target; return_mean=isa(f, EnsembleNetwork))
     return any(Ŷ .> thresh)
 end
 
